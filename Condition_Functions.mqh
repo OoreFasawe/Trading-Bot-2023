@@ -1,27 +1,23 @@
 #include "Utility.mqh"
+
 //200 MA Trend Determinant
-
-
-double getMAData(int period, int ma_shift, ENUM_MA_METHOD method, ENUM_APPLIED_PRICE apply, int shift){
-    return iMA(NULL, TimeFrame, period, ma_shift, method, apply, shift);
-    
-  
+double getMAData(int ma_period, int ma_shift, ENUM_MA_METHOD ma_method, ENUM_APPLIED_PRICE ma_apply, int shift){
+    return iMA(NULL, TimeFrame, ma_period, ma_shift, ma_method, ma_apply, shift);
 }
 
-
 //ema trend
-void set200MAdata(double (&EMA_200data)[]){
-    //if candel stick data not present, initialize entire array
-    if(EMA_200data[0] == NULL){
-        for(int i = 0; i < sizeof(EMA_200data); i++){
-            EMA_200data[sizeof(EMA_200data)-1-i] = getMAData(EMA_Period, EMA_Shift, EMA_Method, EMA_Apply, i);
+void setMAdataOnArray(double& ma_array[], int ma_arrSize, int ma_period, int ma_shift, ENUM_MA_METHOD ma_method, ENUM_APPLIED_PRICE ma_apply){
+    //initialize entire array first time
+    if(ma_array[0] == 0){
+        for(int i = 0; i < ma_arrSize; i++){
+            ma_array[ma_arrSize-1-i] = getMAData(ma_period, ma_shift, ma_method, ma_apply, i);
         }
     }
     else{
         //only get the most recent and add to the array
-        for(int i = 0; i < sizeof(EMA_200data); i++){
-            EMA_200data[i] = EMA_200data[i+1];
+        for(int i = 0; i < ma_arrSize-1; i++){    
+            ma_array[i] = ma_array[i+1];
         }
-        EMA_200data[(sizeof(EMA_200data)-1)] = getMAData(EMA_Period, EMA_Shift, EMA_Method, EMA_Apply, 0);
+        ma_array[(ma_arrSize-1)] = getMAData(ma_period, ma_shift, ma_method, ma_apply, 0);
     }
 }

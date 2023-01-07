@@ -1,20 +1,10 @@
-#property copyright "Copyright 2023, Ooreoluwa Fasawe"
-#property link ""
-#property version "1.00"
-#property strict
-
 #include "Condition_Functions.mqh"
 
-static datetime timeday = 0;
-static bool checkAgain = true;
-
-void OnStart()
-  {
-    double EMA_200data[10];
-
-    set200MAdata(&EMA_200data);
-    for(int i = 0; i < sizeof(EMA_200data); i++){
-            Alert(EMA_200data[i]);
-        }
-   
-  }
+void OnInit(){
+   Alert("Working!");
+   double ema200Data[10] = {};
+   setMAdataOnArray(ema200Data, 10, EMA_Period, EMA_Shift, EMA_Method, EMA_Apply);
+   for(int i = 0; i < 10; i++){
+      Alert(ema200Data[i]);
+   }
+}

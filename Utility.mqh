@@ -1,3 +1,7 @@
+#property copyright "Copyright 2023, Ooreoluwa Fasawe"
+#property link ""
+#property version "1.00"
+#property strict
 int CHART_SYMBOL = NULL;
 input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
 
