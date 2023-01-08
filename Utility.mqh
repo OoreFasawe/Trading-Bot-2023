@@ -2,8 +2,12 @@
 #property link ""
 #property version "1.00"
 #property strict
+
+//GENERAL
 int CHART_SYMBOL = NULL;
 input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
+input int trendMinCandleCount = 16;
+enum TRADETYPE {NONE, BUYS, SELLS};
 
 // MAIN CHART INDICATORS
 input string S1 = "||======== EMA 200 Settings ========||";
