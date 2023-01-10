@@ -3,13 +3,6 @@
 #property version "1.00"
 #property strict
 
-//GENERAL
-int CHART_SYMBOL = NULL;
-input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
-input int trendMinCandleCount = 16;
-input int checkCandsForConsCount = 5;
-enum TRADETYPE {NONE, BUYS, SELLS};
-
 // MAIN CHART INDICATORS
 input string S1 = "||======== EMA 200 Settings ========||";
 input int EMA_Period = 200;
@@ -24,7 +17,7 @@ input ENUM_MA_METHOD MA10_Method = MODE_LWMA;
 input ENUM_APPLIED_PRICE MA10_Apply = PRICE_WEIGHTED;
 
 input string S3 = "||======== Bollinger Bands Settings ========||";
-input int    BB_Period = 5;
+input int    BB_Period = 3;
 input double BB_Deviation = 0.500;
 input int    BB_Shift  = 0;
 input ENUM_APPLIED_PRICE Apply = PRICE_CLOSE;
@@ -47,6 +40,14 @@ input int MA2_Period = 2;
 input int MA2_Shift  = 0;
 input ENUM_MA_METHOD MA2_Method = MODE_SMMA;
 input ENUM_APPLIED_PRICE MA2_Apply = PRICE_CLOSE;
+
+//GENERAL
+int CHART_SYMBOL = NULL;
+input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
+input int trendMinCandleCount = 16;
+int candlesUsedToMonitoForCrossingAndPSAR = 5;
+int checkCandsForConsCount = candlesUsedToMonitoForCrossingAndPSAR + BB_Period;
+enum TRADETYPE {NONE, BUYS, SELLS};
 
 struct MT4_ORDER
   {

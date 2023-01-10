@@ -13,17 +13,14 @@ void OnInit(){
    double ma10Data[];
    ArrayResize(ma10Data, checkCandsForConsCount);
    setMAdataOnArray(ma10Data, checkCandsForConsCount, MA10_Period, MA10_Shift, MA10_Method, MA10_Apply);
-   for(int i = 0; i < checkCandsForConsCount; i++){ //toDo: remove Alert
-      Alert(ma10Data[i]);
-   }
+
+   //get bollinger bands values from chart. 2d array to store upper and lower band values
+   double bbData[][2];
+   ArrayResize(bbData, checkCandsForConsCount);
+   setBBDataOnArrayOffMAData(bbData, ma10Data, checkCandsForConsCount, BB_Period, BB_Deviation, BB_Shift);
    
    //get psar dot values from chart
    double pSarData[];
    ArrayResize(pSarData, checkCandsForConsCount);
    setPSARDataOnArray(pSarData, checkCandsForConsCount, PS_Step, PS_Maximum);
-   for(int i = 0; i < checkCandsForConsCount; i++){ //toDo: remove Alert
-      Alert(pSarData[i]);
-   }
-
-
 }
