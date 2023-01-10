@@ -7,6 +7,7 @@
 int CHART_SYMBOL = NULL;
 input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
 input int trendMinCandleCount = 16;
+input int checkCandsForConsCount = 5;
 enum TRADETYPE {NONE, BUYS, SELLS};
 
 // MAIN CHART INDICATORS
