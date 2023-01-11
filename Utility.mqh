@@ -47,7 +47,15 @@ input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
 input int trendMinCandleCount = 16;
 int candlesUsedToMonitoForCrossingAndPSAR = 5;
 int checkCandsForConsCount = candlesUsedToMonitoForCrossingAndPSAR + BB_Period;
-enum TRADETYPE {NONE, BUYS, SELLS};
+enum ENUM_TRADETYPE {NONE, BUYS, SELLS};
+enum ENUM_RELATIVEPOSITION {EQUAL, ABOVE, BELOW};
+
+struct BBand
+{
+   double upper;
+   double middle;
+   double lower;
+};
 
 struct MT4_ORDER
   {
