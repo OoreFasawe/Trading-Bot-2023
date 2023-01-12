@@ -44,7 +44,6 @@ input ENUM_APPLIED_PRICE MA2_Apply = PRICE_CLOSE;
 //GENERAL
 int CHART_SYMBOL = NULL;
 input ENUM_TIMEFRAMES TimeFrame = PERIOD_M15;
-input int trendMinCandleCount = 16;
 int candlesUsedToMonitoForCrossingAndPSAR = 5;
 int checkCandsForConsCount = candlesUsedToMonitoForCrossingAndPSAR + BB_Period;
 enum ENUM_TRADETYPE {NONE, BUYS, SELLS};
