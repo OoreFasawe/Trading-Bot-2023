@@ -48,6 +48,8 @@ int candlesUsedToMonitoForCrossingAndPSAR = 5;
 int checkCandsForConsCount = candlesUsedToMonitoForCrossingAndPSAR + BB_Period;
 enum ENUM_TRADETYPE {NONE, BUYS, SELLS};
 enum ENUM_RELATIVEPOSITION {EQUAL, ABOVE, BELOW};
+input int stopLossInPoints = 100;
+input int takeProfitInPoints = 50;
 
 struct BBand
 {

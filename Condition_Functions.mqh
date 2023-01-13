@@ -98,8 +98,8 @@ void checkConditions(){
         beforeIdx = -1;
         afterIdx = -1;
         pSarIdx = -1;
-        for(int i = 0; i < candlesUsedToMonitoForCrossingAndPSAR; i++){
-            int idx = checkCandsForConsCount-candlesUsedToMonitoForCrossingAndPSAR + i;
+        for(int i = 0; i < BB_Period; i++){
+            int idx = checkCandsForConsCount-BB_Period + i;
             if(ma10Data[idx] > ema200Data[idx] && bbData[idx].lower > ema200Data[idx]){
                 if(getRelativePosition(ma10Data[idx], bbData[idx].lower) == BELOW && getRelativePosition(ma10Data[idx-1], bbData[idx-1].lower) == BELOW){
                     beforeIdx = i+1;
@@ -120,6 +120,11 @@ void checkConditions(){
                     tradeCoolDownPeriod = true;
                     startTime = TimeCurrent();
                     string name = "buy trade" + string(id);
+                    double stoploss=NormalizeDouble(Bid-stopLossInPoints*Point,Digits);
+                    double takeprofit=NormalizeDouble(Bid+takeProfitInPoints*Point,Digits);
+
+                    Print(OrderSend(NULL, OP_BUY, getLotSize(), Ask, 10, stoploss, takeprofit, NULL, id));
+
                     ObjectCreate(
                         NULL,
                         name,
@@ -152,8 +157,8 @@ void checkConditions(){
         beforeIdx = -1;
         afterIdx = -1;
         pSarIdx = -1;
-        for(int i = 0; i < candlesUsedToMonitoForCrossingAndPSAR; i++){
-            int idx = checkCandsForConsCount-candlesUsedToMonitoForCrossingAndPSAR + i;
+        for(int i = 0; i < BB_Period; i++){
+            int idx = checkCandsForConsCount-BB_Period + i;
             if(ma10Data[idx] < ema200Data[idx] && bbData[idx].upper < ema200Data[idx]){
                 if(getRelativePosition(ma10Data[idx], bbData[idx].upper) == ABOVE && getRelativePosition(ma10Data[idx-1], bbData[idx-1].upper) == ABOVE){
                     beforeIdx = i+1;
@@ -173,6 +178,10 @@ void checkConditions(){
                     //trade: drawing lines for now for testing in strategy tester
                     tradeCoolDownPeriod = true;
                     startTime = TimeCurrent();
+                    double stoploss=NormalizeDouble(Ask+stopLossInPoints*Point,Digits);
+                    double takeprofit=NormalizeDouble(Ask-takeProfitInPoints*Point,Digits);
+
+                    Print(OrderSend(NULL, OP_SELL, getLotSize(), Bid, 10, stoploss, takeprofit, NULL, id));
                     string name = "sell trade" + string(id);
                     ObjectCreate(
                         NULL,
@@ -205,6 +214,25 @@ void checkConditions(){
    else{
     Print("Consd");
    }
+}
+
+double getLotSize(){
+    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+    if (balance < 200){
+        return 0.1;
+    }
+    else if(balance < 300){
+        return 0.2;
+    }
+    else if(balance < 500){
+        return 0.3;
+    }
+    else if(balance < 1000){
+        return 0.5;
+    }
+    else{
+        return 1;
+    }
 }
 
 double MarketInfoCustom(string symbol, int type){
@@ -389,3 +417,13 @@ double MarketInfoCustom(string symbol, int type){
 //   }
    
 
+
+// extern double PERCENTAGE_RISK_PER_TRADE = 0.01;
+// double BALANCE = AccountInfoDouble(ACCOUNT_BALANCE);
+// double calculateLotSize(double stopLossInPips)
+// {
+//   double maxMonetaryRisk = BALANCE * PERCENTAGE_RISK_PER_TRADE;
+//   double lotSizeVolume = maxMonetaryRisk / ((stopLossInPips + calculatePipDifference(SymbolInfoDouble(NULL, SYMBOL_BID), SymbolInfoDouble(NULL, SYMBOL_ASK) /*_SPREAD*/)) * SymbolInfoDouble(NULL, SYMBOL_TRADE_TICK_VALUE));
+
+//   return NormalizeDouble(lotSizeVolume, 2);
+// }
