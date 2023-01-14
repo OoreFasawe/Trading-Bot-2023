@@ -87,14 +87,18 @@ ENUM_RELATIVEPOSITION getRelativePosition(double val1, double val2){
     }
 }
 
-void checkConditions(){
+void trade(){
     //"||======== MA crossing BB check ========||";
     int beforeIdx = -1;
     int afterIdx = -1;
     int pSarIdx = -1;
     bool seenPSARDot = false;
-    Comment("ma10: ", ma10Data[checkCandsForConsCount-1], "\n", "bb3Up: ", bbData[checkCandsForConsCount-1].upper, "\n", "bb3Down: ", bbData[checkCandsForConsCount-1].lower, "\n", "pSARData: ", pSarData[checkCandsForConsCount-1]);
+    ENUM_TRADETYPE condOne = NONE;
+    bool condTwo = false;
+    bool condThree = false;
+    //Comment("ma10: ", ma10Data[checkCandsForConsCount-1], "\n", "bb3Up: ", bbData[checkCandsForConsCount-1].upper, "\n", "bb3Down: ", bbData[checkCandsForConsCount-1].lower, "\n", "pSARData: ", pSarData[checkCandsForConsCount-1]);
     if(marketScanType == BUYS){
+        condOne = BUYS;
         beforeIdx = -1;
         afterIdx = -1;
         pSarIdx = -1;
@@ -104,41 +108,27 @@ void checkConditions(){
                 if(getRelativePosition(ma10Data[idx], bbData[idx].lower) == BELOW && getRelativePosition(ma10Data[idx-1], bbData[idx-1].lower) == BELOW){
                     beforeIdx = i+1;
                 }
-                else if(getRelativePosition(ma10Data[idx], bbData[idx].upper) == ABOVE){
+                else if(getRelativePosition(ma10Data[idx], bbData[idx].upper) == ABOVE ){
                     afterIdx = i+1;
                 }
-                if(getRelativePosition(pSarData[idx], trendCandles[idx].low) == BELOW){
+                if(getRelativePosition(pSarData[idx], trendCandles[idx].low) == BELOW && !seenPSARDot){
                     pSarIdx = i+1;
+                    seenPSARDot = true;
                 }
             }
         }
 
         if(pSarIdx > 0){
+            condTwo = true;
             if(beforeIdx > 0 && afterIdx > 0){
-                if(beforeIdx <= afterIdx){
+                if(beforeIdx <= afterIdx && pSarIdx <= afterIdx){
                     //trade: drawing lines for now for testing in strategy tester
+                    condThree = true;
                     tradeCoolDownPeriod = true;
                     startTime = TimeCurrent();
                     string name = "buy trade" + string(id);
-                    double stoploss=NormalizeDouble(Bid-stopLossInPoints*Point,Digits);
-                    double takeprofit=NormalizeDouble(Bid+takeProfitInPoints*Point,Digits);
-
-                    Print(OrderSend(NULL, OP_BUY, getLotSize(), Ask, 10, stoploss, takeprofit, NULL, id));
-
-                    ObjectCreate(
-                        NULL,
-                        name,
-                        OBJ_TREND,
-                        0,
-                        TimeCurrent(),
-                        (MarketInfo(NULL, MODE_BID) + MarketInfo(NULL, MODE_BID))/2, 
-                        TimeCurrent() + 5400,
-                        (MarketInfo(NULL, MODE_BID) + MarketInfo(NULL, MODE_BID))/2);
-                    ObjectSetInteger(NULL, name, OBJPROP_COLOR, clrLightSkyBlue);
-                    ObjectSetInteger(NULL, name, OBJPROP_SELECTABLE, true);
-                    ObjectSetInteger(NULL, name, OBJPROP_SELECTED, true);
-                    ObjectSetInteger(NULL, name, OBJPROP_HIDDEN, false);
-                    ObjectSetInteger(NULL, name, OBJPROP_RAY, false); 
+                    double stoploss=NormalizeDouble(Ask-stopLossInPoints*Point,Digits);
+                    Print(OrderSend(NULL, OP_BUY, getLotSize(), Ask, 5, stoploss, 0, NULL, id, 0, Green));
                     id++;
                 }
                 else{
@@ -154,6 +144,7 @@ void checkConditions(){
         }
    }
    else if(marketScanType == SELLS){
+        condOne = SELLS;
         beforeIdx = -1;
         afterIdx = -1;
         pSarIdx = -1;
@@ -166,37 +157,23 @@ void checkConditions(){
                 else if(getRelativePosition(ma10Data[idx], bbData[idx].lower) == BELOW){
                     afterIdx = i+1;
                 }
-                if(getRelativePosition(pSarData[idx], trendCandles[idx].high) == ABOVE){
+                if(getRelativePosition(pSarData[idx], trendCandles[idx].high) == ABOVE && !pSarIdx){
                     pSarIdx = i+1;
+                    seenPSARDot = true;
                 }
             }
         }   
 
         if(pSarIdx > 0){
+            condTwo = true;
             if(beforeIdx > 0 && afterIdx > 0){
-                if(beforeIdx <= afterIdx){
+                if(beforeIdx <= afterIdx && pSarIdx <= afterIdx){
                     //trade: drawing lines for now for testing in strategy tester
+                    condThree = true;
                     tradeCoolDownPeriod = true;
                     startTime = TimeCurrent();
-                    double stoploss=NormalizeDouble(Ask+stopLossInPoints*Point,Digits);
-                    double takeprofit=NormalizeDouble(Ask-takeProfitInPoints*Point,Digits);
-
-                    Print(OrderSend(NULL, OP_SELL, getLotSize(), Bid, 10, stoploss, takeprofit, NULL, id));
-                    string name = "sell trade" + string(id);
-                    ObjectCreate(
-                        NULL,
-                        name ,
-                        OBJ_TREND,
-                        0,
-                        TimeCurrent(),
-                        (MarketInfo(NULL, MODE_ASK) + MarketInfo(NULL, MODE_ASK))/2,
-                        TimeCurrent() + 5400,
-                        (MarketInfo(NULL, MODE_ASK) + MarketInfo(NULL, MODE_ASK))/2);
-                    ObjectSetInteger(NULL, name, OBJPROP_COLOR, clrLightSkyBlue);
-                    ObjectSetInteger(NULL, name, OBJPROP_SELECTABLE, true);
-                    ObjectSetInteger(NULL, name, OBJPROP_SELECTED, true);
-                    ObjectSetInteger(NULL, name, OBJPROP_HIDDEN, false);
-                    ObjectSetInteger(NULL, name, OBJPROP_RAY, false); 
+                    double stoploss=NormalizeDouble(Bid+stopLossInPoints*Point,Digits);  
+                    Print(OrderSend(NULL, OP_SELL, getLotSize(), Bid, 10, stoploss, 0, NULL, id, 0, Red));
                     id++;
                 }
                 else{
@@ -210,10 +187,33 @@ void checkConditions(){
         else{
             //Comment("NO DOT ABOVE YET")
         }
-   }
-   else{
-    Print("Consd");
-   }
+    }
+    printConditions(display, condOne, condTwo, condThree);
+}
+
+void monitorOpenTrades(){
+    //loop through orders
+    for(int i = 0; i < OrdersTotal(); i++){
+        //select each order
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            //check if symbol is on a chart ea is activated on so not to affect manual trades on charts ea is not on
+            if(OrderSymbol() == Symbol()){
+                //if buy
+                if(OrderType() == OP_BUY){
+                    //set trailing stop of 50 if tp 50 is reached
+                    if(Ask - OrderStopLoss() >= 50*Point && Ask - OrderOpenPrice() >= 50*Point){
+                        OrderModify(OrderTicket(), OrderOpenPrice(), Ask - (50*Point), 0, 0, 0);
+                    }
+                }
+                // else if sell
+                else if(OrderType() == OP_SELL){
+                    if(OrderStopLoss() - Bid >= 50*Point && OrderOpenPrice() - Bid >= 50*Point){
+                        OrderModify(OrderTicket(), OrderOpenPrice(), Bid + (50*Point), 0, 0, 0);
+                    }
+                }
+            }
+        }
+    }
 }
 
 double getLotSize(){
@@ -299,6 +299,23 @@ double MarketInfoCustom(string symbol, int type){
          return(0);
      }
    return(0);
+}
+
+void printConditions(string display, int one, bool two, bool three){
+    if(one == BUYS){
+        display += "Condition 1(200EMA): LOOKING FOR BUYS\n";
+    }
+    else if(one == SELLS){
+        display += "Condition 1(200EMA): LOOKING FOR SELLS\n";
+    }
+    else{
+        display += "Condition 1(200EMA): 200EMA in between FOOL3Bs\n";
+    }
+
+    display += two ? "Condition 2(PSAR DOT): YES\n" : "Condition 2(PSAR DOT): NO\n";
+    display += three ? "Condition 3(MA/BB CROSSING): YES\n" : "Condition 3(MA/BB CROSSING): NO\n";
+
+    Comment(display);
 }
 
 // bool GoodTime()

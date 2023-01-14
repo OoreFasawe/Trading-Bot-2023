@@ -9,7 +9,7 @@ ENUM_TRADETYPE marketScanType;
 bool tradeCoolDownPeriod = false;
 datetime startTime = TimeCurrent();
 int timeElapsed;
-int id = 1;
+static int id = 1;
 
 string SoundModify="tick.wav";
 string ExpertName;
@@ -22,6 +22,7 @@ int MultiplierPoint;
 double StopLevel;
 double Spreads;
 double Spread;
+string display = "";
 
 void OnInit(){
    //"||======== Getting candlesticks ========||";
@@ -70,27 +71,18 @@ void OnInit(){
 }
 
 void OnTick(){
+   //"||======== Initialize indicators ========||"
    int min15_candles = CopyRates(NULL, TimeFrame, 0, checkCandsForConsCount, trendCandles);
    setMAdataOnArray(ema200Data, checkCandsForConsCount, EMA_Period, EMA_Shift, EMA_Method, EMA_Apply);
    setMAdataOnArray(ma10Data, checkCandsForConsCount, MA10_Period, MA10_Shift, MA10_Method, MA10_Apply);
    setBBDataOnArrayOffMAData(bbData, ma10Data, checkCandsForConsCount, BB_Period, BB_Deviation, BB_Shift);
    setPSARDataOnArray(pSarData, checkCandsForConsCount, PS_Step, PS_Maximum);
-   //"||======== Determine trade direction interest ========||";
+   //"||======== Determine trade direction interest ========||"
    marketScanType = getTradeType(ema200Data, checkCandsForConsCount, trendCandles);
 
-   //"||======== PSAR DOT BELOW Check========||";
-   // for(int i = 5; i > 0; i--){
-   //    if(pSarData[checkCandsForConsCount-i] < trendCandles[checkCandsForConsCount-i].low){
-   //       Alert("Lower");
-   //    }
-   //    else if(pSarData[checkCandsForConsCount-i] > trendCandles[checkCandsForConsCount-i].high){
-   //       Alert("Higher");
-   //    }
-   //    Alert(i, ": ");
-   // }
-
+   //"||======== Trade ========||"toDo: add max trades to be whatever;
    if(tradeCoolDownPeriod == false){
-      checkConditions();
+      trade();
    } 
    else{
       MqlDateTime temp;
@@ -98,5 +90,10 @@ void OnTick(){
       if(temp.min == 45){
          tradeCoolDownPeriod = false;
       }
+   }
+
+   //"||======== Check trades currently running and update if necessary ========||";
+   if(OrdersTotal() > 0){
+      monitorOpenTrades();
    }
 }
