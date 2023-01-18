@@ -59,11 +59,13 @@ enum ENUM_RELATIVEPOSITION
   ABOVE,
   BELOW
 };
+input int rT = 0;
 // take profit stuff
 input int stopLossInPoints = 100;
 input int takeProfitInPoints = 50;
 double StopLevel;
 input bool UseFixedStopLoss = false;
+input bool UseFixedTakeProfit = false;
 input bool UseTakeProfit = false;
 input bool UseTradeCooldown = false;
 input bool UseBreakEven = true;

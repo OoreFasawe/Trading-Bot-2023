@@ -119,8 +119,9 @@ void trade2()
     if (iTime(NULL, 0, 0) != LastTimeBarOP2 || TradeOnNewBar == false)
     {
         if (CountSell() + CountBuy() == 0 && (SelectDirection == LongOnly || SelectDirection == Both))
-            if (((ma10Data[2] <= bbData[2].upper && ma10Data[3] <= bbData[3].upper) && ma10Data[1] > bbData[1].upper && iClose(NULL, TimeFrame, 1) > ema200Data[1] && iClose(NULL, TimeFrame, 1) > pSarData[1] && iClose(NULL, TimeFrame, 2) < pSarData[2] && CheckSpread)
-            || ((ma10Data[2] <= bbData[2].upper || ma10Data[3] <= bbData[3].upper) && ma10Data[1] > bbData[1].upper && iClose(NULL, TimeFrame, 1) > ema200Data[1] && iClose(NULL, TimeFrame, 2) > pSarData[2] && iClose(NULL, TimeFrame, 3) < pSarData[3] && CheckSpread))
+            
+            if (((ma10Data[2-rT] <= bbData[2-rT].upper && ma10Data[3-rT] <= bbData[3-rT].upper) && ma10Data[1-rT] > bbData[1-rT].upper && iClose(NULL, TimeFrame, 1-rT) > ema200Data[1-rT] && iClose(NULL, TimeFrame, 1-rT) > pSarData[1-rT] && iClose(NULL, TimeFrame, 2-rT) < pSarData[2-rT] && CheckSpread)
+            || ((ma10Data[2-rT] <= bbData[2-rT].upper && ma10Data[3-rT] <= bbData[3-rT].upper) && ma10Data[1-rT] > bbData[1-rT].upper && iClose(NULL, TimeFrame, 1-rT) > ema200Data[1-rT] && iClose(NULL, TimeFrame, 2-rT) > pSarData[2] && iClose(NULL, TimeFrame, 3-rT) < pSarData[3-rT] && CheckSpread))
             {
 
                 double SL = 0, TP = 0;
@@ -133,11 +134,15 @@ void trade2()
                 else
                     SL = NormalizeDouble(Bid - atrVal, _Digits);
 
-                if ((takeProfitInPoints > 0) && (UseTakeProfit == true))
-                    TP = NormalizeDouble(Ask + OrderTP, _Digits);
+                if ((takeProfitInPoints > 0) && (UseTakeProfit == true)){
+                    if(UseFixedTakeProfit)
+                        TP = NormalizeDouble(Ask + OrderTP, _Digits);
+                    else
+                        TP = NormalizeDouble(Ask + (atrVal/2), _Digits);
+                }
 
                 for (int i = 0; i < BuyTotal; i++)
-                    if (!OrderSend(Symbol(), OP_BUY, NormalizeDouble(getLotSize(), 2), Ask, Slippage, SL, TP, "Buy", id, 0, clrBlue))
+                    if (!OrderSend(Symbol(), OP_BUY, NormalizeDouble(getLotSize(atrVal), 2), Ask, Slippage, SL, TP, "Buy", id, 0, clrBlue))
                     {
                     }
                     else
@@ -154,25 +159,32 @@ void trade2()
 
         if (CountSell() + CountBuy() == 0 && (SelectDirection == ShortOnly || SelectDirection == Both))
         {
-            if (((ma10Data[2] >= bbData[2].lower && ma10Data[3] >= bbData[3].lower) && ma10Data[1] < bbData[1].lower && iClose(NULL, TimeFrame, 1) < ema200Data[1] && iClose(NULL, TimeFrame, 1) < pSarData[1] && iClose(NULL, TimeFrame, 2) > pSarData[2] && CheckSpread) 
-            || ((ma10Data[2] >= bbData[2].lower && ma10Data[3] >= bbData[3].lower) && ma10Data[1] < bbData[1].lower && iClose(NULL, TimeFrame, 1) < ema200Data[1] && iClose(NULL, TimeFrame, 2) < pSarData[2] && iClose(NULL, TimeFrame, 3) > pSarData[3] && CheckSpread))
+            if (((ma10Data[2-rT] >= bbData[2-rT].lower && ma10Data[3-rT] >= bbData[3-rT].lower) && ma10Data[1-rT] < bbData[1-rT].lower && iClose(NULL, TimeFrame, 1-rT) < ema200Data[1-rT] && iClose(NULL, TimeFrame, 1-rT) < pSarData[1-rT] && iClose(NULL, TimeFrame, 2-rT) > pSarData[2-rT] && CheckSpread) 
+            || ((ma10Data[2-rT] >= bbData[2-rT].lower && ma10Data[3-rT] >= bbData[3-rT].lower) && ma10Data[1-rT] < bbData[1-rT].lower && iClose(NULL, TimeFrame, 1-rT) < ema200Data[1-rT] && iClose(NULL, TimeFrame, 2-rT) < pSarData[2-rT] && iClose(NULL, TimeFrame, 3-rT) > pSarData[3-rT] && CheckSpread))
             {
                 double SL = 0, TP = 0;
                 double OrderTP = NormalizeDouble(takeProfitInPoints * Point, _Digits);
                 double OrderSL = NormalizeDouble(stopLossInPoints * Point, _Digits);
                 double atrVal = NormalizeDouble(iATR(NULL, TimeFrame, 3, 1), _Digits);
 
-                if (UseFixedStopLoss == true)
+                if (UseFixedStopLoss)
                     SL = NormalizeDouble(Ask + OrderSL, _Digits);
                 else
                     SL = NormalizeDouble(Ask + atrVal, _Digits);
 
-                if ((takeProfitInPoints > 0) && (UseTakeProfit == true))
-                    TP = NormalizeDouble(Bid - OrderTP, _Digits);
+                if ((UseTakeProfit)){
+                    if(UseFixedTakeProfit)
+                        TP = NormalizeDouble(Bid - OrderTP, _Digits);     
+                    else
+                        TP = NormalizeDouble(Bid - (atrVal/2), _Digits);
+                        
+                }
+
+                    
 
                 for (int i = 0; i < SellTotal; i++)
                 {
-                    if (!OrderSend(Symbol(), OP_SELL, NormalizeDouble(getLotSize(), 2), Bid, Slippage, SL, TP, "Sell", id, 0, clrRed))
+                    if (!OrderSend(Symbol(), OP_SELL, NormalizeDouble(getLotSize(atrVal), 2), Bid, Slippage, SL, TP, "Sell", id, 0, clrRed))
                     {
                     }
                     else
@@ -257,28 +269,65 @@ void monitorOpenTrades()
     }
 }
 
-double getLotSize()
+double getLotSize(double stoploss)
 {
     double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-    if (balance < 200)
-    {
-        return 0.1;
+    if(UseFixedStopLoss){
+        if (balance < 200)
+        {
+            return 0.1;
+        }
+        else if (balance < 300)
+        {
+            return 0.2;
+        }
+        else if (balance < 500)
+        {
+            return 0.3;
+        }
+        else if (balance < 1000)
+        {
+            return 0.5;
+        }
+        else
+        {
+            return 1;
+        }
     }
-    else if (balance < 300)
-    {
-        return 0.2;
-    }
-    else if (balance < 500)
-    {
-        return 0.3;
-    }
-    else if (balance < 1000)
-    {
-        return 0.5;
-    }
-    else
-    {
-        return 1;
+    else{
+        double maxMonetaryRisk;
+        double lotSizeVolume;
+        if (balance < 200)
+        {
+            maxMonetaryRisk = 10;
+        }
+        else if (balance < 300)
+        {
+            //max monetary risk = 20;
+            maxMonetaryRisk = 20;
+        }
+        else if (balance < 500)
+        {
+            //max monetary risk = 30;
+            maxMonetaryRisk = 30;
+        }
+        else if (balance < 1000)
+        {
+            //max monetary risk = 50;
+            maxMonetaryRisk = 50;
+        }
+        else
+        {
+            //max monetary risk = 100;
+            maxMonetaryRisk = 100;
+        }
+
+        lotSizeVolume = NormalizeDouble(maxMonetaryRisk / ((stoploss * pow(10, _Digits)) * SymbolInfoDouble(NULL, SYMBOL_TRADE_TICK_VALUE)), 2);
+
+        if (lotSizeVolume < 0.01)
+            return 0.01;
+        else
+            return lotSizeVolume;
     }
 }
 
