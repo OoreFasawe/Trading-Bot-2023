@@ -113,21 +113,25 @@ ENUM_RELATIVEPOSITION getRelativePosition(double val1, double val2)
 
 void trade2()
 {
-    Print("Previous guy's");
+    // Print("Previous guy's");
     // Comment(bbData[checkCandsForConsCount - 3].upper, "\n", bbData[checkCandsForConsCount - 3].lower, "\n",bbData[checkCandsForConsCount - 4].upper, "\n", bbData[checkCandsForConsCount - 4].lower);
 
     if (iTime(NULL, 0, 0) != LastTimeBarOP2 || TradeOnNewBar == false)
     {
         if (CountSell() + CountBuy() == 0 && (SelectDirection == LongOnly || SelectDirection == Both))
-            if ((ma10Data[2] <= bbData[2].upper || ma10Data[3] <= bbData[3].upper) && ma10Data[1] > bbData[1].upper && iClose(NULL, 0, 1) > ema200Data[1] && iClose(NULL, 0, 1) > pSarData[1] && iClose(NULL, 0, 2) < pSarData[2] && CheckSpread == true)
+            if (((ma10Data[2] <= bbData[2].upper && ma10Data[3] <= bbData[3].upper) && ma10Data[1] > bbData[1].upper && iClose(NULL, TimeFrame, 1) > ema200Data[1] && iClose(NULL, TimeFrame, 1) > pSarData[1] && iClose(NULL, TimeFrame, 2) < pSarData[2] && CheckSpread)
+            || ((ma10Data[2] <= bbData[2].upper || ma10Data[3] <= bbData[3].upper) && ma10Data[1] > bbData[1].upper && iClose(NULL, TimeFrame, 1) > ema200Data[1] && iClose(NULL, TimeFrame, 2) > pSarData[2] && iClose(NULL, TimeFrame, 3) < pSarData[3] && CheckSpread))
             {
 
                 double SL = 0, TP = 0;
                 double OrderTP = NormalizeDouble(takeProfitInPoints * Point, _Digits);
                 double OrderSL = NormalizeDouble(stopLossInPoints * Point, _Digits);
+                double atrVal = NormalizeDouble(iATR(NULL, TimeFrame, 3, 1), _Digits);
 
-                if ((stopLossInPoints > 0) && (UseStopLoss == true))
+                if (UseFixedStopLoss == true)
                     SL = NormalizeDouble(Bid - OrderSL, _Digits);
+                else
+                    SL = NormalizeDouble(Bid - atrVal, _Digits);
 
                 if ((takeProfitInPoints > 0) && (UseTakeProfit == true))
                     TP = NormalizeDouble(Ask + OrderTP, _Digits);
@@ -143,20 +147,25 @@ void trade2()
                             tradeCoolDownPeriod = true;
                             startTime = TimeCurrent();
                         }
+                        Comment("ATR3: ", iATR(NULL, TimeFrame, 3, 1), "\n", "ATR5: ", iATR(NULL, TimeFrame, 5, 1), "\n", "ATR10: ", iATR(NULL, TimeFrame, 10, 1), "\n", "ATR14: ", iATR(NULL, TimeFrame, 14, 1), "\n");
                         id++;
                     }
             }
 
         if (CountSell() + CountBuy() == 0 && (SelectDirection == ShortOnly || SelectDirection == Both))
         {
-            if ((ma10Data[2] >= bbData[2].lower || ma10Data[3] >= bbData[3].lower) && ma10Data[1] < bbData[1].lower && iClose(NULL, 0, 1) < ema200Data[1] && iClose(NULL, 0, 1) < pSarData[1] && iClose(NULL, 0, 2) > pSarData[2] && CheckSpread == true)
+            if (((ma10Data[2] >= bbData[2].lower && ma10Data[3] >= bbData[3].lower) && ma10Data[1] < bbData[1].lower && iClose(NULL, TimeFrame, 1) < ema200Data[1] && iClose(NULL, TimeFrame, 1) < pSarData[1] && iClose(NULL, TimeFrame, 2) > pSarData[2] && CheckSpread) 
+            || ((ma10Data[2] >= bbData[2].lower && ma10Data[3] >= bbData[3].lower) && ma10Data[1] < bbData[1].lower && iClose(NULL, TimeFrame, 1) < ema200Data[1] && iClose(NULL, TimeFrame, 2) < pSarData[2] && iClose(NULL, TimeFrame, 3) > pSarData[3] && CheckSpread))
             {
                 double SL = 0, TP = 0;
                 double OrderTP = NormalizeDouble(takeProfitInPoints * Point, _Digits);
                 double OrderSL = NormalizeDouble(stopLossInPoints * Point, _Digits);
+                double atrVal = NormalizeDouble(iATR(NULL, TimeFrame, 3, 1), _Digits);
 
-                if ((stopLossInPoints > 0) && (UseStopLoss == true))
+                if (UseFixedStopLoss == true)
                     SL = NormalizeDouble(Ask + OrderSL, _Digits);
+                else
+                    SL = NormalizeDouble(Ask + atrVal, _Digits);
 
                 if ((takeProfitInPoints > 0) && (UseTakeProfit == true))
                     TP = NormalizeDouble(Bid - OrderTP, _Digits);
@@ -173,6 +182,7 @@ void trade2()
                             tradeCoolDownPeriod = true;
                             startTime = TimeCurrent();
                         }
+                        Comment("ATR3: ", iATR(NULL, TimeFrame, 3, 1), "\n", "ATR5: ", iATR(NULL, TimeFrame, 5, 1), "\n", "ATR10: ", iATR(NULL, TimeFrame, 10, 1), "\n", "ATR14: ", iATR(NULL, TimeFrame, 14, 1), "\n");
                         id++;
                     }
                 }
@@ -182,277 +192,7 @@ void trade2()
     }
 }
 
-// void ModifyOrders(int magic)
-//   {
-// //------------------------------------------------------
-//    double PriceComad=0;
-//    double LocalStopLoss=0;
-//    bool WasOrderModified;
-//    string CommentModify;
-// //------------------------------------------------------
-// //Select order
-//    for(int i=0; i<OrdersTotal(); i++)
-//      {
-//       if(OrderSelect(i,SELECT_BY_POS)==true)
-//         {
-//          if((OrderSymbol()==EASymbol) && (OrderMagicNumber()==magic))
-//            {
-//             //------------------------------------------------------
-//             //Modify buy
-//             if(OrderType()==OP_BUY)
-//               {
-//                LocalStopLoss=0.0;
-//                WasOrderModified=false;
-//                while(true)
-//                  {
-//                   //------------------------------------------------------
-//                   //Break even
-//                   if((LocalStopLoss==0) && (BreakEven>0) && (UseBreakEven==true) && (Bid-OrderOpenPrice()>=(BreakEven+BreakEvenAfter)*DigitPoints) && (NormalizeDouble(OrderOpenPrice()+BreakEven*DigitPoints,_Digits)<=Bid-(StopLevel*DigitPoints)) && (OrderStopLoss()==0 || OrderStopLoss()<=OrderOpenPrice())) //&&(OrderStopLoss()<OrderOpenPrice()))
-//                     {
-//                      Print("Buy Break");
-//                      PriceComad=NormalizeDouble(OrderOpenPrice()+BreakEven*DigitPoints,_Digits);
-//                      LocalStopLoss=BreakEven;
-//                      CommentModify="break even";
-//                     }
-//                   //------------------------------------------------------
-//                   //Trailing stop
-//                   //    Print(NormalizeDouble(Bid-((TrailingStop+TrailingStep)*DigitPoints),_Digits)+"   >   "+OrderStopLoss());
-//                   if((LocalStopLoss==0) && (TrailingStop>0) && (UseTrailingStop==true) && ((NormalizeDouble(Bid-((TrailingStop+TrailingStep)*DigitPoints),_Digits)>OrderStopLoss() || OrderStopLoss()==0))   && (OrderOpenPrice()<=NormalizeDouble(Bid-TrailingStop*DigitPoints,_Digits)))
-//                     {
-//                      Print("Buy Trail");
-//                      PriceComad=NormalizeDouble(Bid-TrailingStop*DigitPoints,_Digits);
-//                      LocalStopLoss=TrailingStop;
-//                      CommentModify="trailing stop";
-//                     }
-//                   //------------------------------------------------------
-//                   //Modify
-//                   if((LocalStopLoss>0) && (PriceComad!=NormalizeDouble(OrderStopLoss(),_Digits)))
-//                      WasOrderModified=OrderModify(OrderTicket(),0,PriceComad,NormalizeDouble(OrderTakeProfit(),_Digits),0,clrBlue);
-//                   else
-//                      break;
-//                   //---
-//                   if(WasOrderModified>0)
-//                     {
-//                      if(SoundAlert==true)
-//                         PlaySound(SoundModify);
-//                      Print(ExpertName+": modify buy by "+CommentModify+", ticket: "+DoubleToString(OrderTicket(),0));
-//                      break;
-//                     }
-//                   else
-//                     {
-//                      Print("Error: ",DoubleToString(GetLastError(),0)+" || "+ExpertName+": receives new data and try again modify order");
 
-//                     }
-//                   //---Errors
-//                   if((GetLastError()==1) || (GetLastError()==132) || (GetLastError()==133) || (GetLastError()==137) || (GetLastError()==4108) || (GetLastError()==4109))
-//                      break;
-//                   //---
-//                  }//End while(true)
-//               }//End if(OrderType()
-//             //------------------------------------------------------
-//             //Modify sell
-//             if(OrderType()==OP_SELL)
-//               {
-//                WasOrderModified=false;
-//                LocalStopLoss=0.0;
-//                while(true)
-//                  {
-//                   //------------------------------------------------------
-//                   //Break even
-//                   if((LocalStopLoss==0) && (BreakEven>0) && (UseBreakEven==true) && (OrderOpenPrice()-Ask>=(BreakEven+BreakEvenAfter)*DigitPoints) && (NormalizeDouble(OrderOpenPrice()-BreakEven*DigitPoints,_Digits)>=Ask+(StopLevel*DigitPoints)) && (OrderStopLoss()==0 || OrderStopLoss()>=OrderOpenPrice()))  //&&(OrderStopLoss()>OrderOpenPrice()))
-//                     {
-//                      Print("Sell Break");
-//                      PriceComad=NormalizeDouble(OrderOpenPrice()-BreakEven*DigitPoints,_Digits);
-//                      LocalStopLoss=BreakEven;
-//                      CommentModify="break even";
-//                     }
-//                   //------------------------------------------------------
-//                   //Trailing stop
-//                   //   Print(NormalizeDouble(Ask+((TrailingStop+TrailingStep)*DigitPoints),_Digits)+"   <   "+OrderStopLoss());
-
-//                   if((LocalStopLoss==0) && (TrailingStop>0) && (UseTrailingStop==true) && ((NormalizeDouble(Ask+((TrailingStop+TrailingStep)*DigitPoints),_Digits)<OrderStopLoss() || OrderStopLoss()==0))  && (OrderOpenPrice()>=NormalizeDouble(Ask+TrailingStop*DigitPoints,_Digits)))
-//                     {
-//                      Print("Sell Trail");
-//                      PriceComad=NormalizeDouble(Ask+TrailingStop*DigitPoints,_Digits);
-//                      LocalStopLoss=TrailingStop;
-//                      CommentModify="trailing stop";
-
-//                     }
-//                   //------------------------------------------------------
-//                   //Modify
-
-//                   if((LocalStopLoss>0) && (PriceComad!=NormalizeDouble(OrderStopLoss(),_Digits)))
-//                      WasOrderModified=OrderModify(OrderTicket(),0,PriceComad,NormalizeDouble(OrderTakeProfit(),_Digits),0,clrRed);
-//                   else
-//                      break;
-//                   //---
-//                   if(WasOrderModified>0)
-//                     {
-//                      if(SoundAlert==true)
-//                         PlaySound(SoundModify);
-//                      Print(ExpertName+": modify sell by "+CommentModify+", ticket: "+DoubleToString(OrderTicket(),0));
-//                      break;
-//                     }
-//                   else
-//                     {
-//                      Print("Error: ",DoubleToString(GetLastError(),0)+" || "+ExpertName+": receives new data and try again modify order");
-
-//                     }
-//                   //---Errors
-//                   if((GetLastError()==1) || (GetLastError()==132) || (GetLastError()==133) || (GetLastError()==137) || (GetLastError()==4108) || (GetLastError()==4109))
-//                      break;
-//                   //---
-//                  }//End while(true)
-//               }//End if(OrderType()
-//             //------------------------------------------------------
-//            }//End if((OrderSymbol()...
-//         }//End OrderSelect(...
-//      }//End for(...
-// //------------------------------------------------------
-//   }
-
-void trade1()
-{
-    Print("Mine");
-    //"||======== MA crossing BB check ========||";
-    int beforeIdx = -1;
-    int afterIdx = -1;
-    int pSarIdx = -1;
-    bool seenPSARDot = false;
-    ENUM_TRADETYPE condOne = NONE;
-    bool condTwo = false;
-    bool condThree = false;
-    // Comment("ma10: ", ma10Data[checkCandsForConsCount-1], "\n", "bb3Up: ", bbData[checkCandsForConsCount-1].upper, "\n", "bb3Down: ", bbData[checkCandsForConsCount-1].lower, "\n", "pSARData: ", pSarData[checkCandsForConsCount-1]);
-    if (marketScanType == BUYS && CountSell() + CountBuy() == 0 && (SelectDirection == ShortOnly || SelectDirection == Both))
-    {
-        condOne = BUYS;
-        beforeIdx = -1;
-        afterIdx = -1;
-        pSarIdx = -1;
-        for (int i = BB_Period; i > 0; i--)
-        {
-
-            if (ma10Data[i] > ema200Data[i] && bbData[i].lower > ema200Data[i])
-            {
-                if (getRelativePosition(ma10Data[i], bbData[i].lower) == BELOW && getRelativePosition(ma10Data[i + 1], bbData[i + 1].lower) == BELOW)
-                {
-                    beforeIdx = i;
-                }
-                else if (getRelativePosition(ma10Data[i], bbData[i].upper) == ABOVE)
-                {
-                    afterIdx = i;
-                }
-                if (getRelativePosition(pSarData[i], iLow(NULL, TimeFrame, i)) == BELOW && !seenPSARDot)
-                {
-                    pSarIdx = i;
-                    seenPSARDot = true;
-                }
-            }
-        }
-
-        if (pSarIdx > 0)
-        {
-            condTwo = true;
-            if (beforeIdx > 0 && afterIdx > 0)
-            {
-                if (beforeIdx >= afterIdx && pSarIdx >= afterIdx)
-                {
-                    // trade: drawing lines for now for testing in strategy tester
-                    condThree = true;
-                    if (UseTradeCooldown)
-                    {
-                        tradeCoolDownPeriod = true;
-                        startTime = TimeCurrent();
-                    }
-                    double TP = 0;
-                    double stoploss = NormalizeDouble(Ask - stopLossInPoints * Point, Digits);
-                    if(UseTakeProfit){
-                        TP = NormalizeDouble(Ask + takeProfitInPoints * Point, Digits);
-                    }
-                    OrderSend(NULL, OP_BUY, getLotSize(), Ask, 5, stoploss, TP, NULL, id, 0, Green);
-                    id++;
-                }
-                else
-                {
-                    // Comment("CROSSOVER IN REVERSE ORDER");
-                }
-            }
-            else
-            {
-                // Comment("NO VALID CROSSOVER");
-            }
-        }
-        else
-        {
-            // Comment("NO DOT BELOW YET")
-        }
-    }
-    else if (marketScanType == SELLS && CountSell() + CountBuy() == 0 && (SelectDirection == ShortOnly || SelectDirection == Both))
-    {
-        condOne = SELLS;
-        beforeIdx = -1;
-        afterIdx = -1;
-        pSarIdx = -1;
-        for (int i = BB_Period; i > 0; i--)
-        {
-            if (ma10Data[i] < ema200Data[i] && bbData[i].upper < ema200Data[i])
-            {
-                if (getRelativePosition(ma10Data[i], bbData[i].upper) == ABOVE && getRelativePosition(ma10Data[i + 1], bbData[i + 1].upper) == ABOVE)
-                {
-                    beforeIdx = i;
-                }
-                else if (getRelativePosition(ma10Data[i], bbData[i].lower) == BELOW)
-                {
-                    afterIdx = i;
-                }
-                if (getRelativePosition(pSarData[i], iHigh(NULL, TimeFrame, i)) == ABOVE && !seenPSARDot)
-                {
-                    pSarIdx = i;
-                    seenPSARDot = true;
-                }
-            }
-        }
-
-        if (pSarIdx > 0)
-        {
-            condTwo = true;
-            if (beforeIdx > 0 && afterIdx > 0)
-            {
-                if (beforeIdx >= afterIdx && pSarIdx >= afterIdx)
-                {
-                    // trade: drawing lines for now for testing in strategy tester
-                    condThree = true;
-                    if (UseTradeCooldown)
-                    {
-                        tradeCoolDownPeriod = true;
-                        startTime = TimeCurrent();
-                    }
-                    double TP = 0;
-                    double stoploss = NormalizeDouble(Bid + stopLossInPoints * Point, Digits);
-
-                    if(UseTakeProfit){
-                        TP = NormalizeDouble(Bid - takeProfitInPoints * Point, Digits);
-                    }
-                    OrderSend(NULL, OP_SELL, getLotSize(), Bid, 10, stoploss, TP, NULL, id, 0, Red);
-                    id++;
-                }
-                else
-                {
-                    // Comment("CROSSOVER IN REVERSE ORDER");
-                }
-            }
-            else
-            {
-                // Comment("NO VALID CROSSOVER");
-            }
-        }
-        else
-        {
-            // Comment("NO DOT ABOVE YET")
-        }
-    }
-    printConditions(display, condOne, condTwo, condThree);
-}
 
 void monitorOpenTrades()
 {
@@ -469,7 +209,7 @@ void monitorOpenTrades()
                 if (OrderType() == OP_BUY)
                 {
                     // if trade hasn't gone 5 pips in
-                    if (OrderStopLoss() < OrderOpenPrice())
+                    if (OrderStopLoss() < OrderOpenPrice() || OrderStopLoss() == 0)
                     {
                         if (Ask - OrderOpenPrice() >= takeProfitInPoints * Point)
                         {
@@ -492,7 +232,7 @@ void monitorOpenTrades()
                 // else if sell
                 else if (OrderType() == OP_SELL)
                 {
-                    if (OrderStopLoss() > OrderOpenPrice())
+                    if (OrderStopLoss() > OrderOpenPrice() || OrderStopLoss() == 0)
                     {
                         if (OrderOpenPrice() - Bid >= takeProfitInPoints * Point)
                         {

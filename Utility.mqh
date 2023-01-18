@@ -4,6 +4,7 @@
 #property strict
 
 // MAIN CHART INDICATORS
+bool seen = false;
 input string S1 = "||======== EMA 200 Settings ========||";
 input int EMA_Period = 200;
 input int EMA_Shift = 0;
@@ -62,9 +63,15 @@ enum ENUM_RELATIVEPOSITION
 input int stopLossInPoints = 100;
 input int takeProfitInPoints = 50;
 double StopLevel;
-input bool UseStopLoss = false;
+input bool UseFixedStopLoss = false;
 input bool UseTakeProfit = false;
 input bool UseTradeCooldown = false;
+input bool UseBreakEven = true;
+input double BreakEven = 2;
+input double BreakEvenAfter = 10;
+input bool UseTrailingStop = true;
+input double TrailingStop = 10.0;
+input double TrailingStep = 1;
 
 input string TimeFilter = "==== Time Filter ====";
 input bool UseTimeFilter = false;
@@ -111,7 +118,7 @@ bool CheckSpread;
 
 input int BuyTotal = 1;
 input int SellTotal = 1;
-input TRADESTRAT eaImplementation = MINE;
+//input TRADESTRAT eaImplementation = MINE;
 int CountBuy()
 {
   int open = 0;
