@@ -132,13 +132,13 @@ void trade2()
                 if (UseFixedStopLoss == true)
                     SL = NormalizeDouble(Bid - OrderSL, _Digits);
                 else
-                    SL = NormalizeDouble(Bid - atrVal, _Digits);
+                    SL = NormalizeDouble(Bid - (atrVal*atrSLMulti), _Digits);
 
                 if ((takeProfitInPoints > 0) && (UseTakeProfit == true)){
                     if(UseFixedTakeProfit)
                         TP = NormalizeDouble(Ask + OrderTP, _Digits);
                     else
-                        TP = NormalizeDouble(Ask + (atrVal/2), _Digits);
+                        TP = NormalizeDouble(Ask + (atrVal*atrTPMuti), _Digits);
                 }
 
                 for (int i = 0; i < BuyTotal; i++)
@@ -170,14 +170,13 @@ void trade2()
                 if (UseFixedStopLoss)
                     SL = NormalizeDouble(Ask + OrderSL, _Digits);
                 else
-                    SL = NormalizeDouble(Ask + atrVal, _Digits);
+                    SL = NormalizeDouble(Ask + (atrVal * atrSLMulti), _Digits);
 
                 if ((UseTakeProfit)){
                     if(UseFixedTakeProfit)
                         TP = NormalizeDouble(Bid - OrderTP, _Digits);     
                     else
-                        TP = NormalizeDouble(Bid - (atrVal/2), _Digits);
-                        
+                        TP = NormalizeDouble(Bid - (atrVal * atrTPMuti), _Digits);
                 }
 
                     
